@@ -14,6 +14,8 @@ class GameOverSubstate extends MusicBeatSubstate
 
 	var stageSuffix:String = "";
 
+	var touchTimer:Float = 0;
+
 	public function new(x:Float, y:Float)
 	{
 		var daStage = PlayState.curStage;
@@ -46,18 +48,25 @@ class GameOverSubstate extends MusicBeatSubstate
 		FlxG.camera.target = null;
 
 		bf.playAnim('firstDeath');
+
+		addTouchBack();
 	}
 
 	override function update(elapsed:Float)
 	{
 		super.update(elapsed);
 
-		if (controls.ACCEPT)
+		// a tap anywhere retries, the BACK button leaves
+		// (taps are ignored for a moment: fingers still on the hitbox when you die would retry right away)
+		touchTimer += elapsed;
+		var touchOk:Bool = TouchUtil.MOBILE && touchTimer > 1;
+
+		if (controls.ACCEPT || (touchOk && TouchUtil.tapped && !touchBackTapped))
 		{
 			endBullshit();
 		}
 
-		if (controls.BACK)
+		if (controls.BACK || (touchOk && touchBackTapped))
 		{
 			FlxG.sound.music.stop();
 

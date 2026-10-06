@@ -107,7 +107,10 @@ class GameplayCustomizeState extends MusicBeatState
 
         FlxG.mouse.visible = true;
 
+        addTouchBack();
     }
+
+    var dragging:Bool = false;
 
     override function update(elapsed:Float) {
 		if (FlxG.sound.music != null)
@@ -118,20 +121,23 @@ class GameplayCustomizeState extends MusicBeatState
         FlxG.camera.zoom = FlxMath.lerp(0.9, FlxG.camera.zoom, 0.95);
         camHUD.zoom = FlxMath.lerp(1, camHUD.zoom, 0.95);
 
-        if (FlxG.mouse.overlaps(sick) && FlxG.mouse.pressed)
+        // drag with the mouse or a finger
+        var pointer = TouchUtil.pressedPointer;
+        if (pointer != null && (dragging || pointer.overlaps(sick)))
         {
-            sick.x = FlxG.mouse.x - sick.width / 2;
-            sick.y = FlxG.mouse.y - sick.height / 2;
+            dragging = true;
+            sick.x = pointer.x - sick.width / 2;
+            sick.y = pointer.y - sick.height / 2;
         }
-
-        if (FlxG.mouse.overlaps(sick) && FlxG.mouse.justReleased)
+        else if (dragging)
         {
+            dragging = false;
             FlxG.save.data.changedHitX = sick.x;
             FlxG.save.data.changedHitY = sick.y;
             FlxG.save.data.changedHit = true;
         }
 
-        if (controls.BACK)
+        if (controls.BACK || touchBackTapped)
         {
             FlxG.mouse.visible = false;
             FlxG.sound.play(Paths.sound('cancelMenu'));

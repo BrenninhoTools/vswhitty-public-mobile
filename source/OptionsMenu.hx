@@ -41,7 +41,10 @@ class OptionsMenu extends MusicBeatState
 			new NPSDisplayOption("Shows your current Notes Per Second."),
 			new SongPositionOption("Show the songs current position (as a bar)"),
 			#else
-			new DistractionsAndEffectsOption("Toggle stage distractions that can hinder your gameplay.")
+			new DistractionsAndEffectsOption("Toggle stage distractions that can hinder your gameplay."),
+			#end
+			#if (mobile || MOBILE_UI)
+			new HitboxOpacityOption("How visible the touch controls are (Left for -10%, Right for +10%). At 0% they are invisible but still work."),
 			#end
 		]),
 		
@@ -93,8 +96,22 @@ class OptionsMenu extends MusicBeatState
 		versionShit.setFormat("VCR OSD Mono", 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		add(versionShit);
 
+		addTouchBack();
+
+		if (TouchUtil.MOBILE)
+		{
+			// stand-ins for the LEFT / RIGHT keys, used to change the value of the selected option
+			touchLeft = new TouchButton(FlxG.width / 2 - 110, FlxG.height - 70, 100, 60, FlxColor.BLACK, "<");
+			touchRight = new TouchButton(FlxG.width / 2 + 10, FlxG.height - 70, 100, 60, FlxColor.BLACK, ">");
+			add(touchLeft);
+			add(touchRight);
+		}
+
 		super.create();
 	}
+
+	var touchLeft:TouchButton;
+	var touchRight:TouchButton;
 
 	var isCat:Bool = false;
 	
@@ -103,9 +120,37 @@ class OptionsMenu extends MusicBeatState
 	{
 		super.update(elapsed);
 
-			if (controls.BACK && !isCat)
+			// arrow keys, or the on-screen arrows on touch builds
+			var rightP:Bool = FlxG.keys.justPressed.RIGHT;
+			var leftP:Bool = FlxG.keys.justPressed.LEFT;
+			var rightHeld:Bool = FlxG.keys.pressed.RIGHT;
+			var leftHeld:Bool = FlxG.keys.pressed.LEFT;
+			var accepted:Bool = controls.ACCEPT;
+
+			if (touchLeft != null)
+			{
+				rightP = rightP || touchRight.justPressed;
+				leftP = leftP || touchLeft.justPressed;
+				rightHeld = rightHeld || touchRight.pressed;
+				leftHeld = leftHeld || touchLeft.pressed;
+
+				// tapping an option selects it, tapping the selected one presses it
+				var tapped = TouchUtil.tappedNearest(grpControls.members);
+				if (tapped == curSelected)
+					accepted = true;
+				else if (tapped >= 0)
+					changeSelection(tapped - curSelected);
+
+				var drag = TouchUtil.dragSteps(TouchUtil.DRAG_STEP);
+				if (drag != 0)
+					changeSelection(drag);
+			}
+
+			var backed:Bool = controls.BACK || touchBackTapped;
+
+			if (backed && !isCat)
 				FlxG.switchState(new MainMenuState());
-			else if (controls.BACK)
+			else if (backed)
 			{
 				isCat = false;
 				grpControls.clear();
@@ -130,16 +175,16 @@ class OptionsMenu extends MusicBeatState
 				{
 					if (FlxG.keys.pressed.SHIFT)
 						{
-							if (FlxG.keys.pressed.RIGHT)
+							if (rightHeld)
 								currentSelectedCat.getOptions()[curSelected].right();
-							if (FlxG.keys.pressed.LEFT)
+							if (leftHeld)
 								currentSelectedCat.getOptions()[curSelected].left();
 						}
 					else
 					{
-						if (FlxG.keys.justPressed.RIGHT)
+						if (rightP)
 							currentSelectedCat.getOptions()[curSelected].right();
-						if (FlxG.keys.justPressed.LEFT)
+						if (leftP)
 							currentSelectedCat.getOptions()[curSelected].left();
 					}
 				}
@@ -148,14 +193,14 @@ class OptionsMenu extends MusicBeatState
 
 					if (FlxG.keys.pressed.SHIFT)
 					{
-						if (FlxG.keys.justPressed.RIGHT)
+						if (rightP)
 							FlxG.save.data.offset += 0.1;
-						else if (FlxG.keys.justPressed.LEFT)
+						else if (leftP)
 							FlxG.save.data.offset -= 0.1;
 					}
-					else if (FlxG.keys.pressed.RIGHT)
+					else if (rightHeld)
 						FlxG.save.data.offset += 0.1;
-					else if (FlxG.keys.pressed.LEFT)
+					else if (leftHeld)
 						FlxG.save.data.offset -= 0.1;
 					
 					versionShit.text = "Offset (Left, Right, Shift for slow): " + HelperFunctions.truncateFloat(FlxG.save.data.offset,2) + " - Description - " + currentDescription;
@@ -165,14 +210,14 @@ class OptionsMenu extends MusicBeatState
 			{
 				if (FlxG.keys.pressed.SHIFT)
 					{
-						if (FlxG.keys.justPressed.RIGHT)
+						if (rightP)
 							FlxG.save.data.offset += 0.1;
-						else if (FlxG.keys.justPressed.LEFT)
+						else if (leftP)
 							FlxG.save.data.offset -= 0.1;
 					}
-					else if (FlxG.keys.pressed.RIGHT)
+					else if (rightHeld)
 						FlxG.save.data.offset += 0.1;
-					else if (FlxG.keys.pressed.LEFT)
+					else if (leftHeld)
 						FlxG.save.data.offset -= 0.1;
 				
 				versionShit.text = "Offset (Left, Right, Shift for slow): " + HelperFunctions.truncateFloat(FlxG.save.data.offset,2) + " - Description - " + currentDescription;
@@ -182,7 +227,7 @@ class OptionsMenu extends MusicBeatState
 			if (controls.RESET)
 					FlxG.save.data.offset = 0;
 
-			if (controls.ACCEPT)
+			if (accepted)
 			{
 				if (isCat)
 				{

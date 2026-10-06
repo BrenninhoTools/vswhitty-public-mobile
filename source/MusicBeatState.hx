@@ -25,8 +25,27 @@ class MusicBeatState extends FlxUIState
 	inline function get_controls():Controls
 		return PlayerSettings.player1.controls;
 
+	var touchBack:BackButton;
+
+	/** Adds an on-screen BACK button on touch builds. Menus check `touchBackTapped` where they check `controls.BACK`. */
+	function addTouchBack():Void
+	{
+		if (!TouchUtil.MOBILE)
+			return;
+
+		touchBack = new BackButton();
+		add(touchBack);
+	}
+
+	var touchBackTapped(get, never):Bool;
+
+	inline function get_touchBackTapped():Bool
+		return touchBack != null && TouchUtil.tappedWithin(touchBack, touchBack.hitPadding, touchBack.touchCamera);
+
 	override function create()
 	{
+		TouchUtil.reset();
+
 		(cast (Lib.current.getChildAt(0), Main)).setFPSCap(FlxG.save.data.fpsCap);
 
 		if (transIn != null)

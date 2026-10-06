@@ -81,7 +81,7 @@ class PauseSubState extends MusicBeatSubstate
 		perSongOffset.scrollFactor.set();
 		perSongOffset.setFormat("VCR OSD Mono", 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		
-		#if cpp
+		#if (cpp && !mobile)
 			add(perSongOffset);
 		#end
 
@@ -110,6 +110,21 @@ class PauseSubState extends MusicBeatSubstate
 		var leftP = controls.LEFT_P;
 		var rightP = controls.RIGHT_P;
 		var accepted = controls.ACCEPT;
+
+		if (TouchUtil.MOBILE)
+		{
+			// tapping an item selects it, tapping the selected one runs it
+			var tapped = TouchUtil.tappedNearest(grpMenuShit.members, cameras[0]);
+			if (tapped == curSelected)
+				accepted = true;
+			else if (tapped >= 0)
+				changeSelection(tapped - curSelected);
+
+			var drag = TouchUtil.dragSteps(TouchUtil.DRAG_STEP);
+			if (drag != 0)
+				changeSelection(drag);
+		}
+
 		var oldOffset:Float = 0;
 		var songPath = 'assets/data/' + PlayState.SONG.song.toLowerCase() + '/';
 
@@ -122,7 +137,7 @@ class PauseSubState extends MusicBeatSubstate
 			changeSelection(1);
 		}
 		
-		#if cpp
+		#if (cpp && !mobile)
 			else if (leftP)
 			{
 				oldOffset = PlayState.songOffset;

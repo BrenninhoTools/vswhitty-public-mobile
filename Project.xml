@@ -2,7 +2,7 @@
 <project>
 	<!-- _________________________ Application Settings _________________________ -->
 
-	<app title="Friday Night Funkin' Kade Engine" file="Kade Engine" packageName="com.ninjamuffin99.funkin" package="com.ninjamuffin99.funkin" main="Main" version="0.2.7.1" company="ninjamuffin99" />
+	<app title="FNF Whitty" file="Whitty" packageName="com.whitty" package="com.whitty" main="Main" version="0.2.7.1" company="ninjamuffin99" />
 
 	<!--Switch Export with Unique ApplicationID and Icon-->
 	<set name="APP_ID" value="0x0100f6c013bbc000" />
@@ -31,6 +31,27 @@
 
 	<!--Switch-specific-->
 	<window if="switch" orientation="landscape" fullscreen="true" width="0" height="0" resizable="true" />
+
+	<!-- ____________________________ Mobile Settings ___________________________ -->
+
+	<!--Android: lime build android (needs the Android SDK/NDK set up with `lime setup android`)-->
+	<config:android target-sdk-version="33" minimum-sdk-version="21" build-tools-version="34.0.0" if="android" />
+
+	<!--Android permissions-->
+	<section if="android">
+		<config:android permission="android.permission.INTERNET" />
+		<config:android permission="android.permission.ACCESS_NETWORK_STATE" />
+		<config:android permission="android.permission.VIBRATE" />
+		<config:android permission="android.permission.READ_EXTERNAL_STORAGE" />
+		<config:android permission="android.permission.WRITE_EXTERNAL_STORAGE" />
+	</section>
+
+	<!--iOS: lime build ios (needs a Mac with Xcode)-->
+	<ios deployment="12.0" binaries="arm64" devices="universal" if="ios" />
+
+	<!--The on-screen controls (Hitbox, back buttons, tappable menus) are on by default for android and ios.
+		Uncomment this to get them on a desktop build, so they can be tested with the mouse or a touchscreen-->
+	<!-- <haxedef name="MOBILE_UI" /> -->
 
 	<!-- _____________________________ Path Settings ____________________________ -->
 
@@ -117,8 +138,9 @@
 
 	<!--In case you want to use the ui package-->
 	<haxelib name="flixel-ui" />
-	<haxelib name="newgrounds"/>
+	<haxelib name="newgrounds" unless="mobile"/>
 	<haxelib name="faxe" if='switch'/>
+	<haxelib name="extension-androidtools" if="android"/>
 	<haxelib name="polymod"/>
 	<haxelib name="discord_rpc" if="windows"/>
 	<haxelib name="linc_luajit" if="windows"/>

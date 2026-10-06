@@ -1,5 +1,30 @@
 package;
 
+#if mobile
+/**
+ * The newgrounds library doesn't support mobile targets, so there NGio is a stand-in that does nothing.
+ */
+class NGio
+{
+	public static var isLoggedIn:Bool = false;
+	public static var scoreboardsLoaded:Bool = false;
+
+	public static var GAME_VER:String = "";
+	public static var GAME_VER_NUMS:String = '';
+	public static var gotOnlineVer:Bool = false;
+
+	public static function noLogin(api:String) {}
+
+	public function new(api:String, encKey:String, ?sessionId:String) {}
+
+	inline static public function postScore(score:Int = 0, song:String) {}
+
+	inline static public function logEvent(event:String) {}
+
+	inline static public function unlockMedal(id:Int) {}
+}
+#else
+
 import flixel.FlxG;
 import flixel.util.FlxSignal;
 import flixel.util.FlxTimer;
@@ -198,3 +223,5 @@ class NGio
 		}
 	}
 }
+
+#end

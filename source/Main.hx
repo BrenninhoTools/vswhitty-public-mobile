@@ -93,13 +93,16 @@ class Main extends Sprite
 
 	var fpsCounter:FPS;
 
+	// the FPS counter doesn't exist on mobile
 	public function toggleFPS(fpsEnabled:Bool):Void {
-		fpsCounter.visible = fpsEnabled;
+		if (fpsCounter != null)
+			fpsCounter.visible = fpsEnabled;
 	}
 
 	public function changeFPSColor(color:FlxColor)
 	{
-		fpsCounter.textColor = color;
+		if (fpsCounter != null)
+			fpsCounter.textColor = color;
 	}
 
 	public function setFPSCap(cap:Float)
@@ -114,6 +117,6 @@ class Main extends Sprite
 
 	public function getFPS():Float
 	{
-		return fpsCounter.currentFPS;
+		return fpsCounter != null ? fpsCounter.currentFPS : getFPSCap();
 	}
 }

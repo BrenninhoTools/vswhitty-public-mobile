@@ -249,6 +249,8 @@ class StoryMenuState extends MusicBeatState
 
 		trace("Line 165");
 
+		addTouchBack();
+
 		super.create();
 	}
 
@@ -271,6 +273,43 @@ class StoryMenuState extends MusicBeatState
 			lock.y = grpWeekText.members[lock.ID].y;
 		});
 
+		var accepted:Bool = controls.ACCEPT;
+		var diffLeftP:Bool = controls.LEFT_P;
+		var diffRightP:Bool = controls.RIGHT_P;
+		var diffLeftHeld:Bool = controls.LEFT;
+		var diffRightHeld:Bool = controls.RIGHT;
+
+		if (TouchUtil.MOBILE && !movedBack && !selectedWeek)
+		{
+			// tapping a week selects it, tapping the selected one starts it
+			// the difficulty arrows sit next to the first week, so they get the tap before the week list does
+			var arrowTapped:Bool = false;
+			if (difficultySelectors.visible)
+			{
+				var leftTapped = TouchUtil.tappedWithin(leftArrow, 20);
+				var rightTapped = TouchUtil.tappedWithin(rightArrow, 20);
+				arrowTapped = leftTapped || rightTapped;
+
+				diffLeftP = diffLeftP || leftTapped;
+				diffRightP = diffRightP || rightTapped;
+				diffLeftHeld = diffLeftHeld || TouchUtil.pressedWithin(leftArrow, 20);
+				diffRightHeld = diffRightHeld || TouchUtil.pressedWithin(rightArrow, 20);
+			}
+
+			if (!arrowTapped)
+			{
+				var tapped = TouchUtil.tappedNearest(grpWeekText.members, null, 60);
+				if (tapped == curWeek)
+					accepted = true;
+				else if (tapped >= 0)
+					changeWeek(tapped - curWeek);
+			}
+
+			var drag = TouchUtil.dragSteps(TouchUtil.DRAG_STEP);
+			if (drag != 0)
+				changeWeek(drag);
+		}
+
 		if (!movedBack)
 		{
 			if (!selectedWeek)
@@ -285,19 +324,19 @@ class StoryMenuState extends MusicBeatState
 					changeWeek(1);
 				}
 
-				if (controls.RIGHT)
+				if (diffRightHeld)
 					rightArrow.animation.play('press')
 				else
 					rightArrow.animation.play('idle');
 
-				if (controls.LEFT)
+				if (diffLeftHeld)
 					leftArrow.animation.play('press');
 				else
 					leftArrow.animation.play('idle');
 				if(curWeek != updWeek){
-					if (controls.RIGHT_P )
+					if (diffRightP)
 						changeDifficulty(1);
-					if (controls.LEFT_P)
+					if (diffLeftP)
 						changeDifficulty( -1);
 				}else{
 					while (curDifficulty < 2){
@@ -308,7 +347,7 @@ class StoryMenuState extends MusicBeatState
 
 			persistentUpdate = true;
 			persistentDraw = true;
-			if (controls.ACCEPT)
+			if (accepted)
 			{
 				if (curWeek == updWeek && !weekUnlocked[updWeek]){
 					persistentUpdate = false;
@@ -321,7 +360,7 @@ class StoryMenuState extends MusicBeatState
 			}
 		}
 
-		if (controls.BACK && !movedBack && !selectedWeek)
+		if ((controls.BACK || touchBackTapped) && !movedBack && !selectedWeek)
 		{
 			FlxG.sound.play(Paths.sound('cancelMenu'));
 			movedBack = true;

@@ -149,6 +149,10 @@ class PlayState extends MusicBeatState
 	public var camHUD:FlxCamera;
 	private var camGame:FlxCamera;
 
+	// touch controls, only created when TouchUtil.MOBILE is on
+	private var hitbox:Hitbox;
+	private var pauseButton:PauseButton;
+
 	public static var offsetTesting:Bool = false;
 
 	var notesHitArray:Array<Date> = [];
@@ -933,6 +937,22 @@ class PlayState extends MusicBeatState
 
 		if (FlxG.save.data.downscroll)
 			strumLine.y = FlxG.height - 165;
+
+		if (TouchUtil.MOBILE)
+		{
+			// added before the strums so the lanes are drawn behind the notes
+			hitbox = new Hitbox();
+			hitbox.cameras = [camHUD];
+			add(hitbox);
+
+			pauseButton = new PauseButton();
+			pauseButton.cameras = [camHUD];
+			pauseButton.touchCamera = camHUD;
+			add(pauseButton);
+
+			// a little padding so a thumb that misses the button doesn't hit a lane
+			hitbox.deadZones.push(new FlxRect(pauseButton.x - 20, 0, pauseButton.width + 40, pauseButton.y + pauseButton.height + 20));
+		}
 
 		strumLineNotes = new FlxTypedGroup<FlxSprite>();
 		add(strumLineNotes);
@@ -2108,6 +2128,10 @@ class PlayState extends MusicBeatState
 	{
 		if (paused)
 		{
+			// the state stops updating while paused, don't leave lanes stuck down
+			if (hitbox != null)
+				hitbox.releaseAll();
+
 			if (FlxG.sound.music != null)
 			{
 				FlxG.sound.music.pause();
@@ -2280,7 +2304,7 @@ class PlayState extends MusicBeatState
 		super.update(elapsed);
 
 		scoreTxt.text = Ratings.CalculateRanking(songScore,songScoreDef,nps,accuracy);
-		if (FlxG.keys.justPressed.ENTER && startedCountdown && canPause)
+		if ((FlxG.keys.justPressed.ENTER || (pauseButton != null && pauseButton.justPressed)) && startedCountdown && canPause)
 		{
 			persistentUpdate = false;
 			persistentDraw = true;
@@ -2320,7 +2344,9 @@ class PlayState extends MusicBeatState
 		iconP1.updateHitbox();
 		iconP2.updateHitbox();
 		
-		headlight.visible = FlxG.random.int(0, 20) != 2;
+		// only the facility stage has a headlight
+		if (headlight != null)
+			headlight.visible = FlxG.random.int(0, 20) != 2;
 		
 		var iconOffset:Int = 26;
 
@@ -3267,6 +3293,17 @@ class PlayState extends MusicBeatState
 					controls.RIGHT_R
 				];
 		 
+				// touch controls act as the arrow keys
+				if (hitbox != null)
+				{
+					for (i in 0...hitbox.lanes.length)
+					{
+						holdArray[i] = holdArray[i] || hitbox.lanes[i].pressed;
+						pressArray[i] = pressArray[i] || hitbox.lanes[i].justPressed;
+						releaseArray[i] = releaseArray[i] || hitbox.lanes[i].justReleased;
+					}
+				}
+
 				// Prevent player input if botplay is on
 				if(FlxG.save.data.botplay)
 				{
@@ -3822,19 +3859,19 @@ class PlayState extends MusicBeatState
 		if (curSong.toLowerCase() == 'milf' && curBeat >= 168 && curBeat < 200 && camZooming && FlxG.camera.zoom < 1.35)
 		{
 			FlxG.camera.zoom += 0.015;
-			camHUD.zoom += 0.03;
+			if (!TouchUtil.MOBILE) camHUD.zoom += 0.03; // no HUD zoom with touch controls
 		}
 
 		if (camZooming && FlxG.camera.zoom < 1.35 && curBeat % 4 == 0)
 		{
 			FlxG.camera.zoom += 0.015;
-			camHUD.zoom += 0.03;
+			if (!TouchUtil.MOBILE) camHUD.zoom += 0.03;
 		}
 
 		if (camZooming && FlxG.camera.zoom < 1.35 && curBeat % 2 == 0 && curSong.toLowerCase() == 'ballistic')
 			{
 				FlxG.camera.zoom += 0.020;
-				camHUD.zoom += 0.035;
+				if (!TouchUtil.MOBILE) camHUD.zoom += 0.035;
 			}
 		
 		if (SONG.song.toLowerCase() == "remorse"){

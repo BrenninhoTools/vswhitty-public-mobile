@@ -583,3 +583,38 @@ class BotPlay extends Option
 	private override function updateDisplay():String
 		return "BotPlay " + (FlxG.save.data.botplay ? "on" : "off");
 }
+class HitboxOpacityOption extends Option
+{
+	public function new(desc:String)
+	{
+		super();
+		description = desc;
+		acceptValues = true;
+	}
+
+	public override function press():Bool
+	{
+		return false;
+	}
+
+	private override function updateDisplay():String
+	{
+		return "Hitbox Opacity";
+	}
+
+	function change(amount:Int):Bool
+	{
+		var opacity:Int = Std.int(FlxG.save.data.hitboxOpacity) + amount;
+
+		FlxG.save.data.hitboxOpacity = Std.int(Math.max(0, Math.min(100, opacity)));
+
+		OptionsMenu.versionShit.text = "Current Hitbox Opacity: " + FlxG.save.data.hitboxOpacity + "% - Description - " + description;
+		return true;
+	}
+
+	override function right():Bool
+		return change(10);
+
+	override function left():Bool
+		return change(-10);
+}

@@ -11,7 +11,9 @@ import flixel.text.FlxText;
 import flixel.tweens.FlxEase;
 import flixel.tweens.FlxTween;
 import flixel.util.FlxColor;
+#if !mobile
 import io.newgrounds.NG;
+#end
 import lime.app.Application;
 
 #if windows
@@ -118,6 +120,8 @@ class MainMenuState extends MusicBeatState
 
 		changeItem();
 
+		addTouchBack();
+
 		super.create();
 	}
 
@@ -132,6 +136,30 @@ class MainMenuState extends MusicBeatState
 
 		if (!selectedSomethin)
 		{
+			var accepted:Bool = controls.ACCEPT;
+
+			if (TouchUtil.MOBILE)
+			{
+				// tapping an item selects it, tapping the selected one opens it
+				// (anywhere along the height of an item counts, the items are far apart)
+				var tapped = TouchUtil.tappedNearest(menuItems.members, null, 90);
+				if (tapped == curSelected)
+					accepted = true;
+				else if (tapped >= 0)
+				{
+					FlxG.sound.play(Paths.sound('scrollMenu'));
+					changeItem(tapped - curSelected);
+				}
+
+				// dragging scrolls the list
+				var drag = TouchUtil.dragSteps(TouchUtil.DRAG_STEP);
+				if (drag != 0)
+				{
+					FlxG.sound.play(Paths.sound('scrollMenu'));
+					changeItem(drag);
+				}
+			}
+
 			if (controls.UP_P)
 			{
 				FlxG.sound.play(Paths.sound('scrollMenu'));
@@ -144,12 +172,12 @@ class MainMenuState extends MusicBeatState
 				changeItem(1);
 			}
 
-			if (controls.BACK)
+			if (controls.BACK || touchBackTapped)
 			{
 				FlxG.switchState(new TitleState());
 			}
 
-			if (controls.ACCEPT)
+			if (accepted)
 			{
 				if (optionShit[curSelected] == 'donate')
 				{

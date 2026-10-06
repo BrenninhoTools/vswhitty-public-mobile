@@ -52,10 +52,31 @@ class GitarooPause extends MusicBeatState
 
 	override function update(elapsed:Float)
 	{
+		var accepted:Bool = controls.ACCEPT;
+
+		if (TouchUtil.MOBILE)
+		{
+			// tapping a button selects it, tapping the selected one confirms
+			if (TouchUtil.tappedOn(replayButton))
+			{
+				if (replaySelect)
+					accepted = true;
+				else
+					changeThing();
+			}
+			else if (TouchUtil.tappedOn(cancelButton))
+			{
+				if (!replaySelect)
+					accepted = true;
+				else
+					changeThing();
+			}
+		}
+
 		if (controls.LEFT_P || controls.RIGHT_P)
 			changeThing();
 
-		if (controls.ACCEPT)
+		if (accepted)
 		{
 			if (replaySelect)
 			{

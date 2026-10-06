@@ -45,6 +45,10 @@ class KadeEngineData
 		if (FlxG.save.data.scrollSpeed == null)
 			FlxG.save.data.scrollSpeed = 1;
 
+		// how visible the on-screen hitbox is, in percent
+		if (FlxG.save.data.hitboxOpacity == null)
+			FlxG.save.data.hitboxOpacity = 100;
+
 		if (FlxG.save.data.npsDisplay == null)
 			FlxG.save.data.npsDisplay = false;
 

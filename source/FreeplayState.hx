@@ -134,6 +134,8 @@ class FreeplayState extends MusicBeatState
 			trace(md);
 		 */
 
+		addTouchBack();
+
 		super.create();
 	}
 
@@ -177,6 +179,24 @@ class FreeplayState extends MusicBeatState
 		var downP = controls.DOWN_P;
 		var accepted = controls.ACCEPT;
 
+		if (TouchUtil.MOBILE)
+		{
+			// tapping a song selects it, tapping the selected one plays it
+			var tapped = TouchUtil.tappedNearest(grpSongs.members);
+			if (tapped == curSelected)
+				accepted = true;
+			else if (tapped >= 0)
+				changeSelection(tapped - curSelected);
+
+			// tap the difficulty label to cycle through them
+			if (TouchUtil.tappedWithin(diffText, 30))
+				changeDiff(1);
+
+			var drag = TouchUtil.dragSteps(TouchUtil.DRAG_STEP);
+			if (drag != 0)
+				changeSelection(drag);
+		}
+
 		if (upP)
 		{
 			changeSelection(-1);
@@ -191,7 +211,7 @@ class FreeplayState extends MusicBeatState
 		if (controls.RIGHT_P)
 			changeDiff(1);
 
-		if (controls.BACK)
+		if (controls.BACK || touchBackTapped)
 		{
 			FlxG.switchState(new MainMenuState());
 		}
